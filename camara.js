@@ -1,12 +1,12 @@
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/build/three.module.js';
-import { PointerLockControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/controls/PointerLockControls.js';
+import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/controls/OrbitControls.js';
 
 // Configuración básica
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
-  75,
+  90,
   window.innerWidth / window.innerHeight,
-  0.1,
+  0.01,
   1000
 );
 const renderer = new THREE.WebGLRenderer();
@@ -24,87 +24,15 @@ const material = new THREE.MeshBasicMaterial({
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-// Configurar la cámara con PointerLockControls
-const controls = new PointerLockControls(camera, renderer.domElement);
-scene.add(controls.getObject());
+// Ajustar el tamaño del cubo
+cube.scale.set(0.2, 0.2, 0.2);
 
-// Configuración de bloqueo/desbloqueo del cursor para controles PointerLock
-const blocker = document.getElementById('blocker');
-const instructions = document.getElementById('instructions');
-const havePointerLock =
-  'pointerLockElement' in document ||
-  'mozPointerLockElement' in document ||
-  'webkitPointerLockElement' in document;
+// Configurar la cámara
+camera.position.set(0, 0, 5);
 
-if (havePointerLock) {
-  const element = document.body;
-
-  const pointerlockchange = function () {
-    if (document.pointerLockElement === element ||
-        document.mozPointerLockElement === element ||
-        document.webkitPointerLockElement === element) {
-      controls.enabled = true;
-      blocker.style.display = 'none';
-    } else {
-      controls.enabled = false;
-      blocker.style.display = '-webkit-box';
-      blocker.style.display = '-moz-box';
-      blocker.style.display = 'box';
-      instructions.style.display = '';
-    }
-  };
-
-  const pointerlockerror = function () {
-    instructions.style.display = '';
-  };
-
-  // Configuración de eventos
-  document.addEventListener('pointerlockchange', pointerlockchange, false);
-  document.addEventListener('mozpointerlockchange', pointerlockchange, false);
-  document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
-
-  document.addEventListener('pointerlockerror', pointerlockerror, false);
-  document.addEventListener('mozpointerlockerror', pointerlockerror, false);
-  document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
-
-  instructions.addEventListener('click', function () {
-    instructions.style.display = 'none';
-
-    // Solicitar el bloqueo del cursor
-    element.requestPointerLock =
-      element.requestPointerLock ||
-      element.mozRequestPointerLock ||
-      element.webkitRequestPointerLock;
-
-    if (/Firefox/i.test(navigator.userAgent)) {
-      const fullscreenchange = function () {
-        if (document.fullscreenElement === element ||
-            document.mozFullscreenElement === element ||
-            document.mozFullScreenElement === element) {
-          document.removeEventListener('fullscreenchange', fullscreenchange);
-          document.removeEventListener('mozfullscreenchange', fullscreenchange);
-
-          element.requestPointerLock();
-        }
-      };
-
-      document.addEventListener('fullscreenchange', fullscreenchange, false);
-      document.addEventListener('mozfullscreenchange', fullscreenchange, false);
-
-      element.requestFullscreen =
-        element.requestFullscreen ||
-        element.mozRequestFullscreen ||
-        element.mozRequestFullScreen ||
-        element.webkitRequestFullscreen;
-
-      element.requestFullscreen();
-    } else {
-      element.requestPointerLock();
-    }
-  }, false);
-} else {
-  instructions.innerHTML = 'Tu navegador no es compatible con Pointer Lock API';
-}
+// Configurar controles de órbita
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableKeys = true;
 
 // Animación
 const animate = function () {
@@ -113,6 +41,9 @@ const animate = function () {
   // Rotar el cubo
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
+
+  // Actualizar los controles
+  controls.update();
 
   // Renderizar la escena
   renderer.render(scene, camera);
